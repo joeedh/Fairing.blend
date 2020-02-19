@@ -14,13 +14,13 @@ import imp
 __all__ = [
     "globals", "util", "ops", "props", "ui", "timer", "timer_oldstyle",
     "shadow", "simplemesh", "subsurf", "sym", "smatrix", "subsurf_evaluate",
-    "bezpatch", "unsubdiv", "optimize"
+    "bezpatch", "unsubdiv", "optimize", "simple_loop_optimize", "solver"
 ]
 
 from . import globals, util, ops, props, ui, timer,  \
               timer_oldstyle, shadow, simplemesh, \
               subsurf, sym, smatrix, bezpatch, subsurf_evaluate, \
-              unsubdiv, optimize
+              unsubdiv, optimize, simple_loop_optimize, solver
 
 timer.clearTimers()
 
@@ -31,6 +31,7 @@ timer_oldstyle.registrar.unreg()
 
 imp.reload(util)
 imp.reload(sym)
+imp.reload(solver)
 imp.reload(simplemesh)
 imp.reload(timer_oldstyle)
 imp.reload(timer)
@@ -43,6 +44,7 @@ imp.reload(optimize)
 imp.reload(props)
 imp.reload(shadow)
 imp.reload(ui)
+imp.reload(simple_loop_optimize)
 imp.reload(ops)
 
 registrar = util.Registrar([

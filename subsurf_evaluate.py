@@ -50,10 +50,13 @@ def getText(text="", co=[0,0,0], scale=0.1, mat="TextMaterial", only_check=False
     
     return ob
 
+"""
 for i in range(32):
     ob = getText("", only_check=True)
     if ob != None:
         ob.location = Vector([100, 100, 100])
+#"""
+
 tn = 0
     
 #"""

@@ -6,6 +6,8 @@ from bpy_extras import view3d_utils
 from mathutils import *
 from math import *
 
+from bpy.props import *
+
 import bgl
 import blf
 
@@ -439,7 +441,37 @@ class ProjectToUnSubD(bpy.types.Operator):
             self.report({'WARNING'}, "Active space must be a View3d")
             return {'CANCELLED'}
 
+from . import simple_loop_optimize, solver
+import imp
+    
+class FairLoopOperator(bpy.types.Operator):
+    """UV Operator description"""
+    bl_idname = "mesh.fair_loop"
+    bl_label = "Fair Loop"
+    bl_options = {'UNDO', 'REGISTER', 'PRESET'}
+    
+    factor = FloatProperty(name="factor", default=1.0)
+    
+    @classmethod
+    def poll(cls, context):
+        obj = context.active_object
+        return obj and obj.type == 'MESH' and obj.mode == 'EDIT'
+
+    def execute(self, context):
+      obj = context.active_object
+      me = obj.data
+      bm = bmesh.from_edit_mesh(me)
+      
+      imp.reload(solver)
+      imp.reload(simple_loop_optimize)
+      
+      simple_loop_optimize.fairLoops(bm, obj.matrix_world, self.factor)
+      
+      bmesh.update_edit_mesh(me)
+      return {'FINISHED'}
 
 registrar = util.Registrar([
-    ProjectToUnSubD
+    ProjectToUnSubD,
+    FairLoopOperator
 ]);
+
