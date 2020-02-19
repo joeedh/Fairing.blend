@@ -1,0 +1,156 @@
+on factor;
+off period;
+
+
+comment: 
+
+          /x1-------x2
+         /  |        |
+        /   |        |
+       /    |        |
+      /    xe1  xf1  | 
+     /      |        |
+    /       |        |
+   x6  xf3  xc--xe2--x3
+     \     /        /
+      \  xe3  xf2  /
+       \ /        / 
+        x5-------x4
+;
+
+val := 3;
+wa := 3 / (2*val);
+wb := 1 / (4*val);
+wc := 1.0 - wa - wb;
+we1 := 3/8;
+we2 := 1/16;
+
+procedure nxc(xc, x1, x2, x3, x4, x5, x6);
+    (xc*wc + x1*wa + x2*wb + x3*wa + x4*wb + x5*wa + x6*wb) / (3*wa+3*wb+wc);
+procedure nxf1(xc, x1, x2, x3, x4, x5, x6);
+    (xc + x1 + x2 + x3) / 4.0;
+procedure nxf2(xc, x1, x2, x3, x4, x5, x6);
+    (xc + x3 + x4 + x5) / 4.0;
+procedure nxf3(xc, x1, x2, x3, x4, x5, x6);
+    (xc + x5 + x6 + x1) / 4.0;
+procedure nxe1(xc, x1, x2, x3, x4, x5, x6);
+    (xc*we1 + x1*we1 + x6*we2 + x2*we2) / (we1*2 + we2*2);
+procedure nxe2(xc, x1, x2, x3, x4, x5, x6);
+    (xc*we1 + x3*we1 + x2*we2 + x4*we2) / (we1*2 + we2*2);
+procedure nxe3(xc, x1, x2, x3, x4, x5, x6);
+    (xc*we1 + x5*we1 + x4*we2 + x6*we2) / (we1*2 + we2*2);
+
+procedure subdivide(vs);
+begin scalar xc, x1, x2, x3, x4, x5, x6, xc_1, xf1, xf2, xf3, xe1, xe2, xe3;
+    xc := part(vs, 1);
+    x1 := part(vs, 2);
+    x2 := part(vs, 3);
+    x3 := part(vs, 4);
+    x4 := part(vs, 5);
+    x5 := part(vs, 6);
+    x6 := part(vs, 7);
+    
+    xc_1 := nxc(xc, x1, x2, x3, x4, x5, x6);
+    xf1 := nxf1(xc, x1, x2, x3, x4, x5, x6);
+    xf2 := nxf2(xc, x1, x2, x3, x4, x5, x6);
+    xf3 := nxf3(xc, x1, x2, x3, x4, x5, x6);
+    xe1 := nxe1(xc, x1, x2, x3, x4, x5, x6);
+    xe2 := nxe2(xc, x1, x2, x3, x4, x5, x6);
+    xe3 := nxe3(xc, x1, x2, x3, x4, x5, x6);
+    
+    return {xc_1, xe1, xf1, xe2, xf2, xe3, xf3};
+end;
+
+lvl1 := subdivide({xc, x1, x2, x3, x4, x5, x6});
+lvl2 := subdivide(lvl1);
+lvl3 := subdivide(lvl2);
+
+a := mat((xc, x1, x2, x3, x4, x5, x6));
+
+b := mat((part(lvl1, 1)), (part(lvl1, 2)), (part(lvl1, 3)), (part(lvl1, 4)), (part(lvl1, 5)), (part(lvl1, 6)), (part(lvl1, 7)));
+
+a := mat((xc), (x1), (x2), (x3), (x4), (x5), (x6));
+
+comment:
+    m11, m12, m13, m14, m15, m16, m17,
+    m21, m22, m23, m24, m25, m26, m27,
+    m31, m32, m33, m34, m35, m36, m37,
+    m41, m42, m43, m44, m45, m46, m47,
+    m51, m52, m53, m54, m55, m56, m57,
+    m61, m62, m63, m64, m65, m66, m67,
+    m71, m72, m73, m74, m75, m76, m77;
+
+smat := mat(
+    (m11, m12, m13, m14, m15, m16, m17),
+    (m11, m12, m13, m14, m15, m16, m17),
+    (m11, m12, m13, m14, m15, m16, m17),
+    (m11, m12, m13, m14, m15, m16, m17),
+    (m11, m12, m13, m14, m15, m16, m17),
+    (m11, m12, m13, m14, m15, m16, m17),
+    (m11, m12, m13, m14, m15, m16, m17),
+);
+
+fm := smat * a;
+
+comment: solve({
+    fm(1, 1) = part(lvl1, 1),
+    fm(2, 1) = part(lvl1, 2),
+    fm(3, 1) = part(lvl1, 3),
+    fm(4, 1) = part(lvl1, 4),
+    fm(5, 1) = part(lvl1, 5),
+    fm(6, 1) = part(lvl1, 6),
+    fm(7, 1) = part(lvl1, 7)
+}, {
+    m11, m12, m13, m14, m15, m16, m17
+});
+
+fm(1, 1);
+
+load_package "linalg";
+lineqs := {
+    part(lvl1, 1) = xc_n,
+    part(lvl1, 2) = x1,
+    part(lvl1, 3) = x2,
+    part(lvl1, 4) = x3,
+    part(lvl1, 5) = x4,
+    part(lvl1, 6) = x5,
+    part(lvl1, 7) = x6
+};
+
+coeff_matrix({
+    part(lvl1, 1) - xc_n,
+    part(lvl1, 2) - x1,
+    part(lvl1, 3) - x2,
+    part(lvl1, 4) - x3,
+    part(lvl1, 5) - x4,
+    part(lvl1, 6) - x5,
+    part(lvl1, 7) - x6
+});
+
+
+procedure safeget(lst);
+    if length(lst) > 1 then part(lst, 2) else 0;
+    
+smat2 = (
+    (5/26, 6/26, 1/26, 6/26, 1/26, 6/26, 1/26),
+    (6/14, 6/14, 1/14, 0, 0, 1/16, 0),
+    (
+);
+
+smat := make_identity(7);
+
+for i := 1:7 do <<
+    for j := 1:7 do <<
+        smat(i, j) := safeget(coeff(part(lvl1, i), a(j, 1)));
+    >>;
+>>;
+smat;
+
+
+    
+coeff_matrix(lineqs);
+
+comment: ff := solve(part(lvl3, 1)-x, xc);
+comment: f1 := part(ff, 1, 2);
+comment: df(f1, x);
+df(part(lvl3, 1), xc);
